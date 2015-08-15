@@ -14,16 +14,25 @@
 
 CRGB leds[NUM_LEDS];
 uint8_t wheelpos = 0;
-float wheel_f = 0;
+float wheel_f = 0.0;
 
 int brightness = 1;
 int spd = 0;
 int brightness_values[] = {20, 50, 100, 200};
-int speeds[] = {0.05, 0.1, 0.5, 1.0};
+float speeds[] = {0.2, 1.0};
 bool button1Held = false;
 long button1timer = 0;
+
 Button button1 = Button(BUTTON_1, HIGH);
 Button button2 = Button(BUTTON_2, HIGH);
+
+void (*patterns[])() = {rainbow, wipe};
+int current_pattern = 0;
+
+int count = 0;
+long msecsFirst = 0;
+long msecsPrevious = 0;
+float bpmAvg = 120;
 
 void setup() {
   FastLED.addLeds<CHIPSET, LED_PIN, CLOCK_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
@@ -42,7 +51,7 @@ void loop()
 
   if (button1.onRelease()) {
     if (!button1Held) {
-      Serial.println("Button 1 pressed");
+      changePattern();
     } else {
         button1Held = false;
     }
@@ -53,12 +62,16 @@ void loop()
     button1Held = true;
     if (millis() - button1timer > 300) {
         button1timer = millis();
-        Serial.println("Button 1 held");
+        changeBrightness();
     }
   }
 
+  if (button2.onPress()) {
+    tapTempo();
+  }
 
-  rainbow(); // run simulation frame
+
+  patterns[current_pattern % 2]();
 
   FastLED.show(); // display this frame
   //FastLED.delay(1000 / FRAMES_PER_SECOND);
@@ -67,7 +80,13 @@ void loop()
 
 void rainbow() {
   fill_rainbow(leds, NUM_LEDS, wheel_f, 2);
-  wheel_f = wheel_f + speeds[spd % 4];
+  wheel_f = wheel_f + speeds[spd % 2];
+}
+
+void wipe() {
+  FastLED.clearData();
+  fill_rainbow(leds, beatsin8(bpmAvg, 0, NUM_LEDS), wheel_f, 2);
+  wheel_f = wheel_f + speeds[spd % 2];
 }
 
 void changeBrightness() {
@@ -77,6 +96,29 @@ void changeBrightness() {
 
 void changeSpeed() {
   spd++;
+}
 
+void changePattern() {
+  current_pattern++;
+}
+
+void tapTempo() {
+  long msecs = millis();
+  if ((msecs - msecsPrevious) > 1000 * 2)
+  {
+    count = 0;
+  }
+
+  if (count == 0)
+  {
+    msecsFirst = msecs;
+    count = 1;
+  }
+  else
+  {
+    bpmAvg = 60000 * count / (msecs - msecsFirst);
+    count++;
+  }
+  msecsPrevious = msecs;
 }
 
