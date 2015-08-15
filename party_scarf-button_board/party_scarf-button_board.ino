@@ -1,4 +1,5 @@
 #include <FastLED.h>
+#include <Button.h>
 
 #define LED_PIN     13
 #define CLOCK_PIN   12
@@ -19,86 +20,49 @@ int brightness = 1;
 int spd = 0;
 int brightness_values[] = {20, 50, 100, 200};
 int speeds[] = {0.05, 0.1, 0.5, 1.0};
-int buttonState1;             // the current reading from the input pin
-int buttonState2;             // the current reading from the input pin
-int lastButtonState1 = LOW;   // the previous reading from the input pin
-int lastButtonState2 = LOW;   // the previous reading from the input pin
+bool button1Held = false;
+long button1timer = 0;
+Button button1 = Button(BUTTON_1, HIGH);
+Button button2 = Button(BUTTON_2, HIGH);
 
-// the following variables are long's because the time, measured in miliseconds,
-// will quickly become a bigger number than can be stored in an int.
-long lastDebounceTime1 = 0;  // the last time the output pin was toggled
-long lastDebounceTime2 = 0;  // the last time the output pin was toggled
-
-long holdTime1 = 0;
-long holdTime2 = 0;
-
-long debounceDelay = 20;    // the debounce time; increase if the output flickers
 void setup() {
-  //delay(3000); // sanity delay
   FastLED.addLeds<CHIPSET, LED_PIN, CLOCK_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
   FastLED.setBrightness(brightness_values[brightness]);
-  pinMode(BUTTON_1, INPUT);
-  pinMode(BUTTON_2, INPUT);
-  //Serial.begin(9600);
+  button1.setDebounceDelay(50);
+  button2.setDebounceDelay(50);
+  button1.setHoldDelay(300);
+  Serial.begin(9600);
 
 }
 
 void loop()
 {
-  // read the state of the switch into a local variable:
-  int reading1 = digitalRead(BUTTON_1);
-  int reading2 = digitalRead(BUTTON_2);
-  // check to see if you just pressed the button
-  // (i.e. the input went from LOW to HIGH),  and you've waited
-  // long enough since the last press to ignore any noise:
+  button1.listen();
+  button2.listen();
 
-  // If the switch changed, due to noise or pressing:
-  if (reading1 != lastButtonState1) {
-    // reset the debouncing timer
-    lastDebounceTime1 = millis();
-  }
-
-  if (reading2 != lastButtonState2) {
-    // reset the debouncing timer
-    lastDebounceTime2 = millis();
-  }
-
-  if ((millis() - lastDebounceTime1) > debounceDelay) {
-    // whatever the reading is at, it's been there for longer
-    // than the debounce delay, so take it as the actual current state:
-
-    // if the button state has changed:
-    if (reading1 != buttonState1) {
-      buttonState1 = reading1;
-
-      // only toggle the LED if the new button state is HIGH
-      if (buttonState1 == HIGH) {
-        changeBrightness();
-      }
+  if (button1.onRelease()) {
+    if (!button1Held) {
+      Serial.println("Button 1 pressed");
+    } else {
+        button1Held = false;
     }
   }
 
-  if ((millis() - lastDebounceTime2) > debounceDelay) {
-    // whatever the reading is at, it's been there for longer
-    // than the debounce delay, so take it as the actual current state:
+  if (button1.isHold()) {
 
-    // if the button state has changed:
-    if (reading2 != buttonState2) {
-      buttonState2 = reading2;
-
-      // only toggle the LED if the new button state is HIGH
-      if (buttonState2 == HIGH) {
-        changeSpeed();
-      }
+    button1Held = true;
+    if (millis() - button1timer > 300) {
+        button1timer = millis();
+        Serial.println("Button 1 held");
     }
   }
+
 
   rainbow(); // run simulation frame
 
   FastLED.show(); // display this frame
   //FastLED.delay(1000 / FRAMES_PER_SECOND);
-  lastButtonState1 = reading1;
-  lastButtonState2 = reading2;
+
 }
 
 void rainbow() {
