@@ -27,7 +27,7 @@ long button2timer = 0;
 Button button1 = Button(BUTTON_1, HIGH);
 Button button2 = Button(BUTTON_2, HIGH);
 
-void (*patterns[])() = {rainbow, wipe, marquee};
+void (*patterns[])() = {rainbow, bpm_rainbow, wipe, marquee, marquee_aa};
 int brightness_values[] = {20, 50, 100, 200};
 float speeds[] = {0.05, 0.2, 1.0};
 
@@ -62,34 +62,39 @@ void loop()
   if (button1.onRelease()) {
     if (!button1Held) {
       changePattern();
-    } else {
-      button1Held = false;
+      FastLED.setBrightness(brightness_values[brightness % num_bright]);
+      } else {
+        button1Held = false;
+      }
     }
-  }
 
-  if (button1.isHold()) {
+    if (button1.isHold()) {
 
-    button1Held = true;
-    if (millis() - button1timer > 300) {
-      button1timer = millis();
-      changeBrightness();
+      button1Held = true;
+      if (millis() - button1timer > 300) {
+        button1timer = millis();
+        changeBrightness();
+      }
     }
-  }
 
-  if (button2.onPress()) {
-    tapTempo();
-  }
+    if (button2.onRelease()) {
+      if(!button2Held) {
+        tapTempo();
+        } else {
+          button2Held = false;
+        }
+      }
 
-  if (button2.isHold()) {
-    button2Held = true;
-    if (millis() - button2timer > 300) {
-      button2timer = millis();
-      changeSpeed();
-    }
-  }
+      if (button2.isHold()) {
+        button2Held = true;
+        if (millis() - button2timer > 300) {
+          button2timer = millis();
+          changeSpeed();
+        }
+      }
 
 
-  patterns[current_pattern % num_patterns]();
+      patterns[current_pattern % num_patterns]();
 
   FastLED.show(); // display this frame
 }
@@ -99,13 +104,19 @@ void rainbow() {
   wheel_f = wheel_f + speeds[spd % num_spd];
 }
 
+void bpm_rainbow() {
+  int b = brightness_values[brightness % num_bright];
+  FastLED.setBrightness(beatsin8(bpmAvg, 0, b));
+  rainbow();
+}
+
 void wipe() {
   FastLED.clearData();
   fill_rainbow(leds, beatsin8(bpmAvg, 0, NUM_LEDS), wheel_f, 2);
   wheel_f = wheel_f + speeds[spd % num_spd];
 }
 
-#define marquee_skip 3
+#define marquee_skip 4
 float start_led = 0.0;
 void marquee() {
   FastLED.clearData();
@@ -113,7 +124,36 @@ void marquee() {
   for (int i = (s % marquee_skip); i < NUM_LEDS; i = i + marquee_skip) {
     leds[i] = CRGB::WhiteSmoke;
   }
-  start_led = start_led + (speeds[spd % num_spd] / 3);
+  start_led = beatsin8(bpmAvg, 0, 100) / (100 / marquee_skip);
+  //start_led = start_led + (speeds[spd % num_spd] / 3);
+}
+
+void marquee_aa() {
+  FastLED.clearData();
+  int s = start_led;
+  int bright = 0;
+  for (int i = 0; i < NUM_LEDS; i++) {
+    // s = 2
+    // start_led = 2.2
+    // i = 1
+    // bright = 0
+    // s % marquee_skip
+    float v = fmod(i, start_led) - (marquee_skip - 1);
+    Serial.print("StartLED: ");
+    Serial.print(start_led);
+    Serial.print(", i: ");
+    Serial.print(i);
+    Serial.print(", v: ");
+    Serial.println(v);
+    if (v > 0) {
+      bright = 255 * v;
+    } else {
+      bright = 255;
+    }
+    leds[i] = CHSV(0, 0, bright);
+  }
+  start_led = beatsin8(bpmAvg, 0, 100) / (100 / marquee_skip);
+  //start_led = start_led + (speeds[spd % num_spd] / 3);
 }
 
 void changeBrightness() {
