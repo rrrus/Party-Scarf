@@ -12,6 +12,8 @@
 #define BRIGHTNESS  100
 #define FRAMES_PER_SECOND 20
 
+#define BRIGHT_HOLD_DELAY 1000
+
 CRGB leds[NUM_LEDS];
 uint8_t wheelpos = 0;
 float wheel_f = 0.0;
@@ -27,7 +29,7 @@ long button2timer = 0;
 Button button1 = Button(BUTTON_1, HIGH);
 Button button2 = Button(BUTTON_2, HIGH);
 
-void (*patterns[])() = {rainbow, bpm_rainbow, wipe, marquee, marquee_aa};
+void (*patterns[])() = {onesine, juggle, ease_me, colorpal_beat, dot_beat, rainbow_beat, rainbow, bpm_rainbow, wipe, marquee};
 int brightness_values[] = {20, 50, 100, 200};
 float speeds[] = {0.05, 0.2, 1.0};
 
@@ -37,13 +39,14 @@ int num_spd = sizeof(speeds) / sizeof(speeds[0]);
 
 int current_pattern = 0;
 
-int count = 0;
+int tap_count = 0;
 long msecsFirst = 0;
 long msecsPrevious = 0;
 float bpmAvg = 120.0;
 
 void setup() {
-  FastLED.addLeds<CHIPSET, LED_PIN, CLOCK_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
+  //FastLED.addLeds<CHIPSET, LED_PIN, CLOCK_PIN, COLOR_ORDER>(leds, NUM_LEDS).setCorrection( TypicalLEDStrip );
+  LEDS.addLeds<CHIPSET, LED_PIN, CLOCK_PIN, COLOR_ORDER>(leds, NUM_LEDS); 
   FastLED.setBrightness(brightness_values[brightness]);
   button1.setDebounceDelay(50);
   button2.setDebounceDelay(50);
@@ -71,7 +74,7 @@ void loop()
     if (button1.isHold()) {
 
       button1Held = true;
-      if (millis() - button1timer > 300) {
+      if (millis() - button1timer > BRIGHT_HOLD_DELAY) {
         button1timer = millis();
         changeBrightness();
       }
@@ -118,43 +121,21 @@ void wipe() {
 
 #define marquee_skip 4
 float start_led = 0.0;
-void marquee() {
-  FastLED.clearData();
+void marquee() { 
   int s = start_led;
   for (int i = (s % marquee_skip); i < NUM_LEDS; i = i + marquee_skip) {
     leds[i] = CRGB::WhiteSmoke;
   }
   start_led = beatsin8(bpmAvg, 0, 100) / (100 / marquee_skip);
+  fadeToBlackBy(leds, NUM_LEDS, 16);                     // 8 bit, 1 = slow, 255 = fast
   //start_led = start_led + (speeds[spd % num_spd] / 3);
 }
 
-void marquee_aa() {
-  FastLED.clearData();
-  int s = start_led;
-  int bright = 0;
-  for (int i = 0; i < NUM_LEDS; i++) {
-    // s = 2
-    // start_led = 2.2
-    // i = 1
-    // bright = 0
-    // s % marquee_skip
-    float v = fmod(i, start_led) - (marquee_skip - 1);
-    Serial.print("StartLED: ");
-    Serial.print(start_led);
-    Serial.print(", i: ");
-    Serial.print(i);
-    Serial.print(", v: ");
-    Serial.println(v);
-    if (v > 0) {
-      bright = 255 * v;
-    } else {
-      bright = 255;
-    }
-    leds[i] = CHSV(0, 0, bright);
-  }
-  start_led = beatsin8(bpmAvg, 0, 100) / (100 / marquee_skip);
-  //start_led = start_led + (speeds[spd % num_spd] / 3);
-}
+void rainbow_beat() {
+  uint8_t beatA = beatsin8(5, 0, 255);                        // Starting hue
+  uint8_t beatB = beatsin8(15, 4, 20);                        // Delta hue between LED's
+  fill_rainbow(leds, NUM_LEDS, beatA, beatB);                 // Use FastLED's fill_rainbow routine.
+} // rainbow_beat()
 
 void changeBrightness() {
   brightness++;
@@ -173,18 +154,18 @@ void tapTempo() {
   long msecs = millis();
   if ((msecs - msecsPrevious) > 1000 * 2)
   {
-    count = 0;
+    tap_count = 0;
   }
 
-  if (count == 0)
+  if (tap_count == 0)
   {
     msecsFirst = msecs;
-    count = 1;
+    tap_count = 1;
   }
   else
   {
-    bpmAvg = 60000.0 * count / (msecs - msecsFirst);
-    count++;
+    bpmAvg = 60000.0 * tap_count / (msecs - msecsFirst);
+    tap_count++;
   }
   msecsPrevious = msecs;
 }
