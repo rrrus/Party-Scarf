@@ -5,17 +5,20 @@
 void Chaser::setup() {
   _chaseAnim.set(NUM_LEDS/2);
   _chaseAnim.setOnIdle([](Animatorf &anim) {
-    anim.animate(randfRange(-10, 10), random(5*1000), random(30*1000));
+    anim.animate(randfRange(-10, 10), randi(5*SECS), randi(30*SECS));
   });
 
   _widthAnim.set(5);
   _widthAnim.setOnIdle([](Animatorf &anim) {
-    anim.animate(randf(NUM_LEDS), random(5*1000)+5000, random(10*1000)+10000);
+    anim.animate(randfRange(2, NUM_LEDS), randiRange(5, 10)*SECS, randiRange(10, 20)*SECS);
   });
 
   _crossoverAnim.set(1);
   _crossoverAnim.setOnIdle([](Animatorf &anim) {
-    anim.animate(randfRange(0.5, NUM_LEDS/4), random(5*1000), random(10*10000)+20000);
+    float next = randfRange(0.5, NUM_LEDS/2);
+    anim.animate(next, randi(5*SECS), randiRange(10, 30)*SECS);
+    // Serial.print("next crossover ");
+    // Serial.println(next);
   });
 
   _color1.set(CRGB::Black);
@@ -23,13 +26,13 @@ void Chaser::setup() {
   AnimatorRGB::OnIdle colorOnIdle = [](AnimatorRGB &anim) {
     float s = randf(1);
     s = s*s*s;
-    anim.animate(CHSV(random(255), 255, 255), random(10*1000), random(30*1000));
+    anim.animate(CHSV(randi(255), 255, 255), randi(10*SECS), randiRange(10, 30)*SECS);
   };
   _color1.setOnIdle(colorOnIdle);
   _color2.setOnIdle(colorOnIdle);
 }
 
-void Chaser::loop() {
+void Chaser::render() {
   static uint32_t lastTime = 0;
   const uint32_t now = millis();
   const float deltaTime = (float)(now - lastTime)/1000.0f;
@@ -49,7 +52,7 @@ void Chaser::loop() {
   const float crossover = min(_crossoverAnim.value(), tailLength/2);
   for (int i=0; i<NUM_LEDS; i++) {
     float ploc = fabs(fmod(fpos + i, tailLength*2) - tailLength) - tailLength/2;
-    float interp = min(0.5*crossover, max(-0.5*crossover, ploc)) / crossover + 0.5;
+    float interp = min(0.5, max(-0.5, ploc / crossover)) + 0.5;
     gLeds[i] = c1.lerp8(c2, 255 * interp);
     // gLeds[i].r = gLumaLut[gLeds[i].r];
     // gLeds[i].g = gLumaLut[gLeds[i].g];

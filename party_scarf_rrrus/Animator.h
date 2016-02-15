@@ -4,7 +4,7 @@
 #include <Arduino.h>
 #include <FastLED.h>
 
-static uint32_t sCurrentFrameTime;
+extern uint32_t sCurrentFrameTime;
 void SetAnimatorCurrentFrameTime(uint32_t time);
 
 template<typename ValueType>
@@ -27,11 +27,14 @@ public:
   }
 
   ValueType value() {
-    ValueType v = valueInternal();
+    if (_valueTime != sCurrentFrameTime && _valueTime < _animEndTime) {
+      _curVal = interpolateValue();
+      _valueTime = sCurrentFrameTime;
+    }
     if (sCurrentFrameTime > _holdEndTime) {
       _onIdle(*this);
     }
-    return v;
+    return _curVal;
   }
 
   void set(ValueType toValue) {
@@ -43,7 +46,7 @@ public:
     if (duration == 0) {
       _startVal = toValue;
     } else {
-      _startVal = valueInternal();
+      _startVal = interpolateValue();
     }
     _startTime = sCurrentFrameTime;
     _nextVal = toValue;
@@ -51,8 +54,9 @@ public:
     _holdEndTime = _animEndTime + thenHoldFor;
   }
 
-  ValueType valueInternal();
+  ValueType interpolateValue();
 
+private:
   ValueType _startVal, _nextVal, _curVal;
   uint32_t _startTime, _animEndTime, _holdEndTime, _valueTime;
   OnIdle _onIdle;

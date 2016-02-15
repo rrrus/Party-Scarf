@@ -21,3 +21,12 @@ static inline float randfRangeMaybe(float min, float max, float likelihood, floa
 	float scale = max-min;
 	return min + (float)(random(1000001))/1000000.0f*scale;
 }
+
+#define randi random
+
+static inline float randiRange(uint32_t min, uint32_t max)
+{
+	// return an int between min and max
+	return min + random(max-min);
+}
+

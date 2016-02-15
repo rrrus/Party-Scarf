@@ -4,7 +4,7 @@
 class Chaser : public Renderer {
 public:
   void setup() override;
-  void loop() override;
+  void render() override;
 
 private:
   Animatorf _chaseAnim;
