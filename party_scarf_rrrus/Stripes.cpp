@@ -1,33 +1,51 @@
 #include "Stripes.h"
 #include "Globals.h"
+#include "hsv2rgb+rrrus.h"
 #include "rrrandom.h"
 
 void Stripes::setup() {
-  _chaseAnim.set(NUM_LEDS/2);
-  _chaseAnim.setOnIdle([](Animatorf &anim) {
-    anim.animate(randfRange(-10, 10), randi(5*SECS), randi(30*SECS));
+  // Start at 0 speed, hold for 5 seconds.
+  _speedAnim.animate(0, 0, 5*SECS);
+  _speedAnim.setOnIdle([](Animatorf &anim) {
+    anim.animate(randfRange(-20, 20),
+                 randi(5*SECS),
+                 randi(30*SECS));
   });
 
-  _widthAnim.set(5);
+  _widthAnim.animate(3, 0, 10*SECS);
   _widthAnim.setOnIdle([](Animatorf &anim) {
-    // float width = randf(0.5, )
-    anim.animate(randfRange(2, NUM_LEDS), randiRange(5, 10)*SECS, randiRange(10, 20)*SECS);
+    // Have to sqrt the min range since so that squaring it later gives
+    // the right min range val.
+    static const float minRange = sqrtf(3.0f / NUM_LEDS);
+    float width = randfRange(minRange, 1);
+    width = width * width;
+    anim.animate(width * NUM_LEDS,
+                 randiRange(5, 10)*SECS,
+                 randiRange(10, 20)*SECS);
   });
 
-  _crossoverAnim.set(1);
+  _crossoverAnim.animate(2, 0, 15*SECS);
   _crossoverAnim.setOnIdle([](Animatorf &anim) {
-    float next = randfRange(0.5, NUM_LEDS/2);
-    anim.animate(next, randi(5*SECS), randiRange(10, 30)*SECS);
-    // Serial.print("next crossover ");
-    // Serial.println(next);
+    // Min crossover of 2 leds gives enough blur to hide the discrete lights.
+    anim.animate(randfRange(2, NUM_LEDS/2),
+                 randi(5*SECS),
+                 randiRange(10, 30)*SECS);
   });
 
   _color1.set(CRGB::Black);
   _color2.set(CRGB::Black);
   AnimatorRGB::OnIdle colorOnIdle = [](AnimatorRGB &anim) {
-    float s = randf(1);
-    s = s*s*s;
-    anim.animate(CHSV(randi(255), 255, 255), randi(10*SECS), randiRange(10, 30)*SECS);
+    CRGB color = CRGB::Black;
+    // 80% of the time, make a color.  20% of the time, use black.
+    if (randi(100) > 20) {
+      float s = randf(1);
+      // Cube s to make it tend more towards 0.
+      s = s*s*s;
+      hsv2rgb_rrrus(CHSV(randi(HUE_MAX_SPECTRUM), (1-s) * 255, 255), color);
+    }
+    anim.animate(color,
+                 randi(10*SECS),
+                 randiRange(10, 30)*SECS);
   };
   _color1.setOnIdle(colorOnIdle);
   _color2.setOnIdle(colorOnIdle);
@@ -43,7 +61,7 @@ void Stripes::render() {
   const CRGB c2 = _color2.value();
   const float tailLength = _widthAnim.value();
   static float fpos;
-  fpos += (_chaseAnim.value() * deltaTime);
+  fpos += (_speedAnim.value() * deltaTime);
   while (fpos > NUM_LEDS) {
     fpos -= tailLength*2;
   }
@@ -55,9 +73,9 @@ void Stripes::render() {
     float ploc = fabs(fmod(fpos + i, tailLength*2) - tailLength) - tailLength/2;
     float interp = min(0.5, max(-0.5, ploc / crossover)) + 0.5;
     gLeds[i] = c1.lerp8(c2, 255 * interp);
-    // gLeds[i].r = gLumaLut[gLeds[i].r];
-    // gLeds[i].g = gLumaLut[gLeds[i].g];
-    // gLeds[i].b = gLumaLut[gLeds[i].b];
+    gLeds[i].r = gLumaLut[gLeds[i].r];
+    gLeds[i].g = gLumaLut[gLeds[i].g];
+    gLeds[i].b = gLumaLut[gLeds[i].b];
   }
 }
 

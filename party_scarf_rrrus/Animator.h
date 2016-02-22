@@ -20,7 +20,7 @@ public:
 
   void setOnIdle(OnIdle onIdle) {
     _onIdle = onIdle;
-    if (sCurrentFrameTime >= _holdEndTime) {
+    if (_onIdle && sCurrentFrameTime >= _holdEndTime) {
       _onIdle(*this);
     }
   }
@@ -30,7 +30,7 @@ public:
       _curVal = interpolateValue();
       _valueTime = sCurrentFrameTime;
     }
-    if (sCurrentFrameTime > _holdEndTime) {
+    if (_onIdle && sCurrentFrameTime > _holdEndTime) {
       _onIdle(*this);
     }
     return _curVal;

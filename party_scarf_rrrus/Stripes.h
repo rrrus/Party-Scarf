@@ -9,7 +9,7 @@ public:
   void render() override;
 
 private:
-  Animatorf _chaseAnim;
+  Animatorf _speedAnim;
   Animatorf _widthAnim;
   Animatorf _crossoverAnim;
   AnimatorRGB _color1;
