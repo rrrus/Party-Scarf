@@ -1,5 +1,5 @@
 #include "Animator.h"
-#include "Chaser.h"
+#include "Stripes.h"
 #include "ColorFade.h"
 #include "Globals.h"
 #include "rrrandom.h"
@@ -23,7 +23,7 @@ int32_t gFrameDelay   = 10;
 int32_t gLastFPS = 0;
 
 // Renderers:
-Chaser chaser;
+Stripes stripes;
 ColorFade colorFade;
 Sparkles sparkles;
 
@@ -56,7 +56,7 @@ void setup() {
   // Initialize Animator with a start time.
   SetAnimatorCurrentFrameTime(millis());
 
-  chaser.setup();
+  stripes.setup();
   colorFade.setup();
   sparkles.setup();
 }
@@ -87,7 +87,7 @@ void loop() {
   }
   gCurrentFrame = (gCurrentFrame + 1) % NFRAMETIMES;
 
-  chaser.render();
+  stripes.render();
   // colorFade.render();
   // sparkles.render();
 

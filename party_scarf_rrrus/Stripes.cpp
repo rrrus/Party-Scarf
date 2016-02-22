@@ -1,8 +1,8 @@
-#include "Chaser.h"
+#include "Stripes.h"
 #include "Globals.h"
 #include "rrrandom.h"
 
-void Chaser::setup() {
+void Stripes::setup() {
   _chaseAnim.set(NUM_LEDS/2);
   _chaseAnim.setOnIdle([](Animatorf &anim) {
     anim.animate(randfRange(-10, 10), randi(5*SECS), randi(30*SECS));
@@ -33,7 +33,7 @@ void Chaser::setup() {
   _color2.setOnIdle(colorOnIdle);
 }
 
-void Chaser::render() {
+void Stripes::render() {
   static uint32_t lastTime = 0;
   const uint32_t now = millis();
   const float deltaTime = (float)(now - lastTime)/1000.0f;

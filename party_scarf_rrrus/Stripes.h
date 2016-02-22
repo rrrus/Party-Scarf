@@ -3,7 +3,7 @@
 #include "Animator.h"
 #include "Renderer.h"
 
-class Chaser : public Renderer {
+class Stripes : public Renderer {
 public:
   void setup() override;
   void render() override;
