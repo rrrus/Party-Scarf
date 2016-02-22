@@ -10,6 +10,7 @@ void Chaser::setup() {
 
   _widthAnim.set(5);
   _widthAnim.setOnIdle([](Animatorf &anim) {
+    // float width = randf(0.5, )
     anim.animate(randfRange(2, NUM_LEDS), randiRange(5, 10)*SECS, randiRange(10, 20)*SECS);
   });
 

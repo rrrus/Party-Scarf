@@ -1,5 +1,4 @@
-#ifndef Animator_h
-#define Animator_h
+#pragma once
 
 #include <Arduino.h>
 #include <FastLED.h>
@@ -64,5 +63,3 @@ private:
 
 typedef Animator<float> Animatorf;
 typedef Animator<CRGB> AnimatorRGB;
-
-#endif // Animator_h

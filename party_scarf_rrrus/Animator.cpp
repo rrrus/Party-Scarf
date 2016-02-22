@@ -1,4 +1,3 @@
-
 #include "Animator.h"
 
 uint32_t sCurrentFrameTime;

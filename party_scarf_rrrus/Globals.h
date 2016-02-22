@@ -1,5 +1,9 @@
+#pragma once
 
-extern const uint16_t NUM_LEDS;
+#include <Arduino.h>
+#include <FastLED.h>
+
+const uint16_t NUM_LEDS = 48;
 extern CRGB gLeds[];
 extern uint8_t gLumaLut[];
 

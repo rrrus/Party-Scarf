@@ -1,14 +1,14 @@
 #include "Animator.h"
 #include "Chaser.h"
+#include "ColorFade.h"
 #include "Globals.h"
 #include "rrrandom.h"
-#include <FastLED.h>
+#include "Sparkles.h"
 
 const uint16_t LED_PIN = 4;
 const uint16_t CLOCK_PIN = 3;
 const EOrder COLOR_ORDER = BGR;
 const ESPIChipsets CHIPSET = APA102;
-const uint16_t NUM_LEDS = 48;
 
 const uint8_t BRIGHTNESS = 100;
 const uint32_t FRAMES_PER_SECOND = 60;
@@ -16,13 +16,16 @@ const uint32_t FRAMES_PER_SECOND = 60;
 CRGB gLeds[NUM_LEDS];
 uint8_t gLumaLut[256];
 
-static const uint32_t NFRAMETIMES = 60;
+static const uint32_t NFRAMETIMES = 20;
 uint32_t gLastFrameTime = 0;
 uint32_t gCurrentFrame = 0;
 int32_t gFrameDelay   = 10;
 int32_t gLastFPS = 0;
 
+// Renderers:
 Chaser chaser;
+ColorFade colorFade;
+Sparkles sparkles;
 
 void setup() {
   //delay(3000); // sanity delay
@@ -54,6 +57,8 @@ void setup() {
   SetAnimatorCurrentFrameTime(millis());
 
   chaser.setup();
+  colorFade.setup();
+  sparkles.setup();
 }
 
 void loop() {
@@ -64,14 +69,14 @@ void loop() {
   // desired FPS.
   if (gCurrentFrame == 0) {
     if (gLastFrameTime != 0) {
-      const uint32_t fps = NFRAMETIMES * 1000 / (now - gLastFrameTime);
-      if (fps != gLastFPS) {
+      const int32_t fps = NFRAMETIMES * 1000 / (now - gLastFrameTime);
+      if (abs(fps - gLastFPS) > 1) {
         Serial.print("FPS ");
         Serial.println(fps);
         gLastFPS = fps;
       }
       const int32_t mspf = (now - gLastFrameTime) / NFRAMETIMES;
-      const uint32_t targetMspf = 1000 / FRAMES_PER_SECOND;
+      const int32_t targetMspf = 1000 / FRAMES_PER_SECOND;
       if (mspf != targetMspf) {
         gFrameDelay = max(0, gFrameDelay + targetMspf - mspf);
         Serial.print("Adjusting frame delay to ");
@@ -83,6 +88,9 @@ void loop() {
   gCurrentFrame = (gCurrentFrame + 1) % NFRAMETIMES;
 
   chaser.render();
+  // colorFade.render();
+  // sparkles.render();
+
   FastLED.show();
   delay(gFrameDelay);
 }

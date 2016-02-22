@@ -1,3 +1,4 @@
+#pragma once
 
 static inline float randf(float scale)
 {
