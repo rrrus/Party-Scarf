@@ -7,7 +7,7 @@ void Stripes::setup() {
   // Start at 0 speed, hold for 5 seconds.
   _speedAnim.animate(0, 0, 5*SECS);
   _speedAnim.setOnIdle([](Animatorf &anim) {
-    anim.animate(randfRange(-20, 20),
+    anim.animate(randfRange(-15, 15),
                  randi(5*SECS),
                  randi(30*SECS));
   });
@@ -16,7 +16,7 @@ void Stripes::setup() {
   _widthAnim.setOnIdle([](Animatorf &anim) {
     // Have to sqrt the min range since so that squaring it later gives
     // the right min range val.
-    static const float minRange = sqrtf(3.0f / NUM_LEDS);
+    static const float minRange = sqrtf(4.0f / NUM_LEDS);
     float width = randfRange(minRange, 1);
     width = width * width;
     anim.animate(width * NUM_LEDS,
@@ -60,17 +60,20 @@ void Stripes::render() {
   const CRGB c1 = _color1.value();
   const CRGB c2 = _color2.value();
   const float tailLength = _widthAnim.value();
-  static float fpos;
+  static float fpos = 0;
   fpos += (_speedAnim.value() * deltaTime);
-  while (fpos > NUM_LEDS) {
-    fpos -= tailLength*2;
-  }
-  while (fpos < 0) {
-    fpos += tailLength*2;
+  if (tailLength > 0) {
+    while (fpos > tailLength) {
+      fpos -= tailLength*2;
+    }
+    while (fpos < -tailLength) {
+      fpos += tailLength*2;
+    }
   }
   const float crossover = min(_crossoverAnim.value(), tailLength/2);
   for (int i=0; i<NUM_LEDS; i++) {
-    float ploc = fabs(fmod(fpos + i, tailLength*2) - tailLength) - tailLength/2;
+    static const int midStrip = NUM_LEDS / 2;
+    float ploc = fabs(fmod(fpos + i - midStrip + tailLength*1000.5, tailLength*2) - tailLength) - tailLength/2;
     float interp = min(0.5, max(-0.5, ploc / crossover)) + 0.5;
     gLeds[i] = c1.lerp8(c2, 255 * interp);
     gLeds[i].r = gLumaLut[gLeds[i].r];

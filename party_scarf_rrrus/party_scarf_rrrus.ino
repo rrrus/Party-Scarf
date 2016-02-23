@@ -42,7 +42,7 @@ void setup() {
 
   // Adjust the severity of the anti-log curve with the expMul term.
   // Bigger = more severe.
-  const float expMul = 5;
+  const float expMul = 6;
   const float scaleBack = powf(2, expMul) - 1;
   for (int i=0; i<256; i++) {
     // Regular gamma function, gamma = 2.8
@@ -71,16 +71,16 @@ void loop() {
     if (gLastFrameTime != 0) {
       const int32_t fps = NFRAMETIMES * 1000 / (now - gLastFrameTime);
       if (abs(fps - gLastFPS) > 1) {
-        Serial.print("FPS ");
-        Serial.println(fps);
+        // Serial.print("FPS ");
+        // Serial.println(fps);
         gLastFPS = fps;
       }
       const int32_t mspf = (now - gLastFrameTime) / NFRAMETIMES;
       const int32_t targetMspf = 1000 / FRAMES_PER_SECOND;
       if (mspf != targetMspf) {
         gFrameDelay = max(0, gFrameDelay + targetMspf - mspf);
-        Serial.print("Adjusting frame delay to ");
-        Serial.println(gFrameDelay);
+        // Serial.print("Adjusting frame delay to ");
+        // Serial.println(gFrameDelay);
       }
     }
     gLastFrameTime = now;
