@@ -24,8 +24,8 @@ int32_t gLastFPS = 0;
 
 // Renderers:
 Stripes stripes;
-ColorFade colorFade;
-Sparkles sparkles;
+// ColorFade colorFade;
+// Sparkles sparkles;
 
 void setup() {
   //delay(3000); // sanity delay
@@ -57,8 +57,8 @@ void setup() {
   SetAnimatorCurrentFrameTime(millis());
 
   stripes.setup();
-  colorFade.setup();
-  sparkles.setup();
+  // colorFade.setup();
+  // sparkles.setup();
 }
 
 void loop() {
