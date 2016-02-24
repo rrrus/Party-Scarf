@@ -1,4 +1,4 @@
-#include "hsv2rgb+rrrus.h"
+#include "hsv2rgb_rrrus.h"
 
 CRGB hsv2rgb_rrrus(const CHSV& hsv, CRGB& rgb) {
   unsigned char region, remainder, p, q, t;

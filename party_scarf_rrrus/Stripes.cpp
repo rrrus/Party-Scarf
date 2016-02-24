@@ -1,7 +1,8 @@
-#include "Stripes.h"
+#include "function_lite.h"
 #include "Globals.h"
-#include "hsv2rgb+rrrus.h"
+#include "hsv2rgb_rrrus.h"
 #include "rrrandom.h"
+#include "Stripes.h"
 
 void Stripes::setup() {
   // Start at 0 speed, hold for 5 seconds.
@@ -34,23 +35,21 @@ void Stripes::setup() {
 
   _color1.set(CRGB::Black);
   _color2.set(CRGB::Black);
-  int i = 255;
-  auto colorOnIdle = [i](AnimatorRGB &anim) {
+  AnimatorRGB::OnIdle colorOnIdle = [](AnimatorRGB &anim) {
     CRGB color = CRGB::Black;
     // 80% of the time, make a color.  20% of the time, use black.
     if (randi(100) > 20) {
       float s = randf(1);
       // Cube s to make it tend more towards 0.
       s = s*s*s;
-      hsv2rgb_rrrus(CHSV(randi(HUE_MAX_SPECTRUM), (1-s) * i, 255), color);
+      hsv2rgb_rrrus(CHSV(randi(255), (1-s) * 255, 255), color);
     }
     anim.animate(color,
                  randi(10*SECS),
                  randiRange(10, 30)*SECS);
   };
-  AnimatorRGB::IOnIdle2 *wrapper = new AnimatorRGB::OnIdle2<decltype(colorOnIdle)>(colorOnIdle);
-  _color1.setOnIdle2(wrapper);
-  _color2.setOnIdle2(wrapper);
+  _color1.setOnIdle(colorOnIdle);
+  _color2.setOnIdle(colorOnIdle);
 }
 
 void Stripes::render() {
