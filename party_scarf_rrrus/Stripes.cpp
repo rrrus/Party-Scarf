@@ -45,7 +45,7 @@ void Stripes::setup() {
       hsv2rgb_rrrus(CHSV(randi(255), (1-s) * 255, 255), color);
     }
     anim.animate(color,
-                 randi(10*SECS),
+                 randiRange(1, 10)*SECS,
                  randiRange(10, 30)*SECS);
   };
   _color1.setOnIdle(colorOnIdle);
