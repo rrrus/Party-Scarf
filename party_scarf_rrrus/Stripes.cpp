@@ -53,29 +53,29 @@ void Stripes::setup() {
 }
 
 void Stripes::render() {
-  static uint32_t lastTime = 0;
   const uint32_t now = millis();
-  const float deltaTime = (float)(now - lastTime)/1000.0f;
-  lastTime = now;
+  const float deltaTime = (float)(now - _lastTime)/1000.0f;
+  _lastTime = now;
 
-  const CRGB c1 = _color1.value();
-  const CRGB c2 = _color2.value();
-  const float tailLength = _widthAnim.value();
-  static float fpos = 0;
-  fpos += (_speedAnim.value() * deltaTime);
-  if (tailLength > 0) {
-    while (fpos > tailLength) {
-      fpos -= tailLength*2;
+  const float stripeWidth = _widthAnim.value();
+  _fpos += (_speedAnim.value() * deltaTime);
+  if (stripeWidth > 0) {
+    while (_fpos > stripeWidth) {
+      _fpos -= stripeWidth*2;
     }
-    while (fpos < -tailLength) {
-      fpos += tailLength*2;
+    while (_fpos < -stripeWidth) {
+      _fpos += stripeWidth*2;
     }
   }
-  const float crossover = min(_crossoverAnim.value(), tailLength/2);
+
+  const float crossover = min(_crossoverAnim.value(), stripeWidth/2);
+  const CRGB c1 = _color1.value();
+  const CRGB c2 = _color2.value();
+
+  static const int midStrip = NUM_LEDS / 2;
   for (int i=0; i<NUM_LEDS; i++) {
-    static const int midStrip = NUM_LEDS / 2;
-    float ploc = fabs(fmod(fpos + i - midStrip + tailLength*1000.5, tailLength*2) - tailLength) - tailLength/2;
-    float interp = min(0.5, max(-0.5, ploc / crossover)) + 0.5;
+    const float ploc = fabs(fmod(_fpos + i - midStrip + stripeWidth*1000.5, stripeWidth*2) - stripeWidth) - stripeWidth/2;
+    const float interp = min(0.5, max(-0.5, ploc / crossover)) + 0.5;
     gLeds[i] = c1.lerp8(c2, 255 * interp);
     gLeds[i].r = gLumaLut[gLeds[i].r];
     gLeds[i].g = gLumaLut[gLeds[i].g];
