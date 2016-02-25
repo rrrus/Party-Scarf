@@ -7,7 +7,7 @@
 extern uint32_t sCurrentFrameTime;
 void SetAnimatorCurrentFrameTime(uint32_t time);
 
-template<typename ValueType>
+template<class ValueType>
 class Animator {
 public:
   typedef function<void(Animator&)> OnIdle;
@@ -37,12 +37,12 @@ public:
     return _curVal;
   }
 
-  void set(ValueType toValue) {
+  void set(const ValueType &toValue) {
     _startVal = _nextVal = toValue;
     _startTime = _animEndTime = _holdEndTime = sCurrentFrameTime;
   }
 
-  void animate(ValueType toValue, uint32_t duration, uint32_t thenHoldFor = 0) {
+  void animate(const ValueType &toValue, uint32_t duration, uint32_t thenHoldFor = 0) {
     if (duration == 0) {
       _startVal = toValue;
     } else {
