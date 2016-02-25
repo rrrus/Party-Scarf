@@ -1,8 +1,12 @@
+#include "fixedp.h"
 #include "function_lite.h"
 #include "Globals.h"
 #include "hsv2rgb_rrrus.h"
 #include "rrrandom.h"
 #include "Stripes.h"
+
+// 0 bits int, 8 bits fraction.
+typedef fixedp<false, 0, 8> ufixdot8;
 
 void Stripes::setup() {
   // Start at 0 speed, hold for 5 seconds.
@@ -39,10 +43,11 @@ void Stripes::setup() {
     CRGB color = CRGB::Black;
     // 80% of the time, make a color.  20% of the time, use black.
     if (randi(100) > 20) {
-      float s = randf(1);
-      // Cube s to make it tend more towards 0.
-      s = s*s*s;
-      hsv2rgb_rrrus(CHSV(randi(255), (1-s) * 255, 255), color);
+      ufixdot8 s = (ufixdot8::ValType)randi(255);
+      // Cube s to make it tend more towards 0, which is then (1-s),
+      // so that we end up with more saturation than not.
+      s = s * s * s;
+      hsv2rgb_rrrus(CHSV(randi(255), (255 - s.fract()), 255), color);
     }
     anim.animate(color,
                  randiRange(1, 10)*SECS,
