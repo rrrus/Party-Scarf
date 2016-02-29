@@ -1,6 +1,8 @@
-#include "hsv2rgb_rrrus.h"
+#include "rrrus_hsv2rgb.h"
 
-CRGB hsv2rgb_rrrus(const CHSV& hsv, CRGB& rgb) {
+namespace rrrus {
+
+CRGB hsv2rgb(const CHSV& hsv, CRGB& rgb) {
   unsigned char region, remainder, p, q, t;
 
   if (hsv.s == 0)
@@ -41,3 +43,4 @@ CRGB hsv2rgb_rrrus(const CHSV& hsv, CRGB& rgb) {
   }
 }
 
+}

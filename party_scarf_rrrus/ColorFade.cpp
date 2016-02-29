@@ -2,19 +2,16 @@
 #include "Globals.h"
 #include "rrrandom.h"
 
-static bool gFadeToWhite = false;
-
 void ColorFade::setup() {
   _color.set(CRGB::Black);
-  AnimatorRGB::OnIdle colorOnIdle = [](AnimatorRGB &anim) {
+  _color.setOnIdle([this](AnimatorRGB &anim) {
     CRGB toColor = CRGB::White;
-    if (true || !gFadeToWhite) {
+    if (_fadeToWhite) {
       toColor = CHSV(randi(255), randi(255), 255);
     }
-    gFadeToWhite = !gFadeToWhite;
-    anim.animate(toColor, randi(5*SECS), randiRange(1, 5)*SECS);
-  };
-  _color.setOnIdle(colorOnIdle);
+    _fadeToWhite = !_fadeToWhite;
+    anim.animate(toColor, randi(5_s), randiRange(1_s, 5_s));
+  });
 }
 
 void ColorFade::render() {

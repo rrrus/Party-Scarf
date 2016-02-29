@@ -18,6 +18,8 @@
 //
 // ---rrrus
 
+namespace rrrus {
+
 template<class _Fp> class __function_ih;
 
 template<class _Rp, class ..._ArgTypes>
@@ -31,7 +33,7 @@ template<class _La, class _Rp, class ..._ArgTypes>
 class __function_h : public __function_ih<_Rp(_ArgTypes...)> {
   _La _lamda;
 public:
-  __function_h(_La func) : _lamda(func) {}
+  __function_h(_La func) : _lamda{func} {}
 
   _Rp operator()(_ArgTypes... __arg) const override {
     return _lamda(__arg...);
@@ -44,11 +46,11 @@ template<class _Fp> class function;
 
 template<class _Rp, class ..._ArgTypes>
 class function<_Rp(_ArgTypes...)> {
-  __function_ih<_Rp(_ArgTypes...)> *_fih;
+  __function_ih<_Rp(_ArgTypes...)> *_fih{nullptr};
 
 public:
-  function() : _fih(0) {}
-  function(const function &other) : _fih(other._fih) {}
+  function() {}
+  function(const function &other) : _fih{other._fih} {}
   ~function() {}
 
   // C++11 has no way of specifying the type of a lambda that captures
@@ -69,3 +71,5 @@ public:
     return (*_fih)(__arg...);
   }
 };
+
+}

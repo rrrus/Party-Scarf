@@ -8,4 +8,5 @@ public:
 
 private:
   AnimatorRGB _color;
+  bool _fadeToWhite{false};
 };

@@ -14,6 +14,6 @@ private:
   Animatorf _crossoverAnim;
   AnimatorRGB _color1;
   AnimatorRGB _color2;
-  uint32_t _lastTime;
-  float _fpos;
+  uint32_t _lastTime{0};
+  float _fpos{0};
 };

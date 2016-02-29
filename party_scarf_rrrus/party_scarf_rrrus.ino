@@ -1,9 +1,9 @@
 #include "Animator.h"
-#include "Stripes.h"
 #include "ColorFade.h"
 #include "Globals.h"
 #include "rrrandom.h"
 #include "Sparkles.h"
+#include "Stripes.h"
 
 const uint16_t LED_PIN = 4;
 const uint16_t CLOCK_PIN = 3;
@@ -14,22 +14,21 @@ const uint8_t BRIGHTNESS = 100;
 const uint32_t FRAMES_PER_SECOND = 60;
 
 CRGB gLeds[NUM_LEDS];
-uint8_t gLumaLut[256];
+Gamma gGamma;
 
 static const uint32_t NFRAMETIMES = 20;
 uint32_t gLastFrameTime = 0;
 uint32_t gCurrentFrame = 0;
-int32_t gFrameDelay   = 10;
+int32_t gFrameDelay = 10;
 int32_t gLastFPS = 0;
 
-// Renderers:
-Stripes stripes;
-// ColorFade colorFade;
-// Sparkles sparkles;
+Renderer *gRenderer = nullptr;
 
 void setup() {
   //delay(3000); // sanity delay
+
   randomSeed(analogRead(0));
+
   //setup serial communications through the USB
   Serial.begin(9600);
   Serial.println("HOW Y'ALL DOIN?");
@@ -39,26 +38,17 @@ void setup() {
   FastLED.setBrightness( BRIGHTNESS );
 
   // Initialize the gamma LUT.
-
-  // Adjust the severity of the anti-log curve with the expMul term.
-  // Bigger = more severe.
-  const float expMul = 6;
-  const float scaleBack = powf(2, expMul) - 1;
-  for (int i=0; i<256; i++) {
-    // Regular gamma function, gamma = 2.8
-    // gLumaLut[i] = powf((float)i/255, 2.8) * 255 + 0.5;
-
-    // rrrus's cool-mo-dee anti-log function, turns on sooner,
-    // wider range of mid-tones.
-    gLumaLut[i] = ((powf(2, expMul * (float)i/255) - 1) / scaleBack) * 255 + 0.5;
-  }
+  gGamma.initAntiLog(6);
 
   // Initialize Animator with a start time.
   SetAnimatorCurrentFrameTime(millis());
 
-  stripes.setup();
-  // colorFade.setup();
-  // sparkles.setup();
+  gRenderer =
+    // new ColorFade();
+    new Stripes();
+    // new Sparkles();
+
+  gRenderer->setup();
 }
 
 void loop() {
@@ -77,8 +67,11 @@ void loop() {
       }
       const int32_t mspf = (now - gLastFrameTime) / NFRAMETIMES;
       const int32_t targetMspf = 1000 / FRAMES_PER_SECOND;
-      if (mspf != targetMspf) {
-        gFrameDelay = max(0, gFrameDelay + targetMspf - mspf);
+      const int32_t diff = mspf - targetMspf;
+      // Little bit of hysteresis on adjusting frame delay. Higher threshold for
+      // decreasing frame delay than increasing.
+      if (diff < 0 || diff > 1) {
+        gFrameDelay = max(0, gFrameDelay - diff);
         // Serial.print("Adjusting frame delay to ");
         // Serial.println(gFrameDelay);
       }
@@ -87,9 +80,7 @@ void loop() {
   }
   gCurrentFrame = (gCurrentFrame + 1) % NFRAMETIMES;
 
-  stripes.render();
-  // colorFade.render();
-  // sparkles.render();
+  gRenderer->render();
 
   FastLED.show();
   delay(gFrameDelay);

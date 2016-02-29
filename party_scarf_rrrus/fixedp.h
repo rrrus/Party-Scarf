@@ -70,10 +70,10 @@ struct FixedPConvert {
 template <bool S, size_t I, size_t F> class fixedp {
 public:
     //Define some values that can be used from the outside for polymorphism:
-    static const size_t INT_SIZE = I;
-    static const size_t FRACT_SIZE = F;
-    static const size_t TOTAL_SIZE = I + F;
-    static const bool SIGNED = S;
+    static const size_t INT_SIZE{I};
+    static const size_t FRACT_SIZE{F};
+    static const size_t TOTAL_SIZE{I + F};
+    static const bool SIGNED{S};
 
     //Get a SizeInfo for our size
     typedef FixedPSizeInfo<SIGNED, TOTAL_SIZE> ValTypeInfo;
@@ -83,19 +83,19 @@ public:
     typedef typename ValTypeInfo::NEXT_SIZEINFO::ValType NextValType;
 
     //Size of the valType in bits
-    static const size_t VAL_SIZE = ValTypeInfo::VAL_SIZE;
+    static const size_t VAL_SIZE{ValTypeInfo::VAL_SIZE};
 
     //1 in our fixed's format
-    static const ValType one = ValType(1) << FRACT_SIZE;
+    static const ValType one{ValType(1) << FRACT_SIZE};
 
-    fixedp() {} //DON'T initialize data here; that's the users job!
-    fixedp(const fixedp &other) : data(other.data) {}
-    fixedp(const ValType &rhs) : data(rhs) {}
+    constexpr fixedp() {} //DON'T initialize data here; that's the users job!
+    constexpr fixedp(const fixedp &other) : data{other.data} {}
+    constexpr fixedp(const ValType &rhs) : data{rhs} {}
 
-    explicit fixedp(int n)           : data(n << FRACT_SIZE) {}
-    explicit fixedp(float n)         : data(static_cast<ValType>(n * one)) {}
-    explicit fixedp(double n)        : data(static_cast<ValType>(n * one)) {}
-    explicit fixedp(unsigned int n)  : data(ValType(n) << FRACT_SIZE) {}
+    constexpr explicit fixedp(int n)           : data{n << FRACT_SIZE} {}
+    constexpr explicit fixedp(float n)         : data{static_cast<ValType>(n * one)} {}
+    constexpr explicit fixedp(double n)        : data{static_cast<ValType>(n * one)} {}
+    constexpr explicit fixedp(unsigned int n)  : data{ValType(n) << FRACT_SIZE} {}
 
 #define FIXEDP_MK_CMP_OP(op) inline bool operator op(const fixedp &o) const { return data op o.data; }
     FIXEDP_MK_CMP_OP(==)

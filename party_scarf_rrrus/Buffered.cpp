@@ -8,12 +8,11 @@ void Buffered::setup() {
 
 void Buffered::render() {
   for (int i=0; i<NUM_LEDS; i++) {
-    // gLeds[i] = gLumaLut[gBufLeds[i]];
-    gLeds[i] = gBufLeds[i];
+    gGamma.apply(gBufLeds[i], gLeds[i]);
+    // gLeds[i] = gBufLeds[i];
 
-    gBufLeds[i].r = max(0, gBufLeds[i].r - _dim);
-    gBufLeds[i].g = max(0, gBufLeds[i].g - _dim);
-    gBufLeds[i].b = max(0, gBufLeds[i].b - _dim);
+    if (_dim != 0) {
+      gBufLeds[i].subtractFromRGB(_dim);
+    }
   }
 }
-

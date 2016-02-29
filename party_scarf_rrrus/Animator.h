@@ -2,36 +2,32 @@
 
 #include <Arduino.h>
 #include <FastLED.h>
-#include "function_lite.h"
+#include "rrrus_function.h"
 
-extern uint32_t sCurrentFrameTime;
+namespace _Animator {
+  extern uint32_t sCurrentFrameTime;
+}
+
 void SetAnimatorCurrentFrameTime(uint32_t time);
 
 template<class ValueType>
 class Animator {
 public:
-  typedef function<void(Animator&)> OnIdle;
-
-  Animator() {
-    _startVal = _nextVal = 0;
-    _startTime = 0;
-    _animEndTime = 1;
-    _holdEndTime = 2;
-  }
+  typedef rrrus::function<void(Animator&)> OnIdle;
 
   void setOnIdle(const OnIdle &onIdle) {
     _onIdle = onIdle;
-    if (sCurrentFrameTime >= _holdEndTime) {
+    if (_Animator::sCurrentFrameTime >= _holdEndTime) {
       _onIdle(*this);
     }
   }
 
   ValueType value() {
-    if (_valueTime != sCurrentFrameTime && _valueTime < _animEndTime) {
+    if (_valueTime != _Animator::sCurrentFrameTime && _valueTime < _animEndTime) {
       _curVal = interpolateValue();
-      _valueTime = sCurrentFrameTime;
+      _valueTime = _Animator::sCurrentFrameTime;
     }
-    if (sCurrentFrameTime > _holdEndTime) {
+    if (_Animator::sCurrentFrameTime > _holdEndTime) {
       _onIdle(*this);
     }
     return _curVal;
@@ -39,7 +35,7 @@ public:
 
   void set(const ValueType &toValue) {
     _startVal = _nextVal = toValue;
-    _startTime = _animEndTime = _holdEndTime = sCurrentFrameTime;
+    _startTime = _animEndTime = _holdEndTime = _Animator::sCurrentFrameTime;
   }
 
   void animate(const ValueType &toValue, uint32_t duration, uint32_t thenHoldFor = 0) {
@@ -48,7 +44,7 @@ public:
     } else {
       _startVal = interpolateValue();
     }
-    _startTime = sCurrentFrameTime;
+    _startTime = _Animator::sCurrentFrameTime;
     _nextVal = toValue;
     _animEndTime = _startTime + duration;
     _holdEndTime = _animEndTime + thenHoldFor;
@@ -57,8 +53,8 @@ public:
   ValueType interpolateValue();
 
 private:
-  ValueType _startVal, _nextVal, _curVal;
-  uint32_t _startTime, _animEndTime, _holdEndTime, _valueTime;
+  ValueType _startVal{0}, _nextVal{0}, _curVal{0};
+  uint32_t _startTime{0}, _animEndTime{1}, _holdEndTime{2}, _valueTime{2};
   OnIdle _onIdle;
 };
 

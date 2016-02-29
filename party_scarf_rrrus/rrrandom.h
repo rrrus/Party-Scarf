@@ -24,12 +24,12 @@ static inline float randfRangeMaybe(float min, float max, float likelihood, floa
 	return min + (float)(random(1000001))/1000000.0f*scale;
 }
 
-static inline long randi(int32_t max)
+static inline long randi(long max)
 {
 	return random(max+1);
 }
 
-static inline long randiRange(int32_t min, int32_t max)
+static inline long randiRange(long min, long max)
 {
 	// return an int between min and max inclusive.
 	return min + random(max-min+1);

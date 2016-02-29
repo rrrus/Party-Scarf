@@ -1,6 +1,10 @@
 #include "Animator.h"
 
+namespace _Animator {
 uint32_t sCurrentFrameTime;
+}
+
+using namespace _Animator;
 
 void SetAnimatorCurrentFrameTime(uint32_t time) {
   sCurrentFrameTime = time;
